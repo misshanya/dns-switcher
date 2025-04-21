@@ -82,7 +82,7 @@ func resolve(server string, domain string, qtype uint16) []dns.RR {
 	}
 
 	if response == nil {
-		log.Printf("[NO REPONSE] from server\n")
+		log.Printf("[NO RESPONSE] from server\n")
 		return nil
 	}
 
