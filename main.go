@@ -14,7 +14,7 @@ func main() {
 }
 
 func StartDNSServer(cfg *Config) {
-	handler := new(dnsHandler)
+	handler := NewDNSHandler(cfg.Upstreams)
 	server := &dns.Server{
 		Addr:      cfg.Address,
 		Net:       "udp",
@@ -33,7 +33,15 @@ func StartDNSServer(cfg *Config) {
 }
 
 type dnsHandler struct {
-	Upstream string
+	upstreams []string
+	Upstream  string
+}
+
+func NewDNSHandler(upstreams []string) *dnsHandler {
+	return &dnsHandler{
+		upstreams: upstreams,
+		Upstream:  upstreams[0],
+	}
 }
 
 func (h *dnsHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
@@ -43,6 +51,17 @@ func (h *dnsHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 
 	for _, question := range r.Question {
 		answers := resolve(h.Upstream, question.Name, question.Qtype)
+		// Try to get another server to use as main if current didnt respond
+		if answers == nil {
+			newUpstream := getWorkingUpstream(h.upstreams)
+			if newUpstream == "" {
+				log.Println("Not found working upstream server")
+				break
+			}
+			h.Upstream = newUpstream
+			answers = resolve(h.Upstream, question.Name, question.Qtype)
+		}
+
 		msg.Answer = append(msg.Answer, answers...)
 	}
 
@@ -70,6 +89,27 @@ func resolve(server string, domain string, qtype uint16) []dns.RR {
 	return response.Answer
 }
 
+func getWorkingUpstream(upstreams []string) string {
+	c := &dns.Client{Timeout: 5 * time.Second}
+
+	m := new(dns.Msg)
+	m.SetQuestion(dns.Fqdn("google.com"), dns.TypeA)
+	m.RecursionDesired = true
+
+	for _, upstream := range upstreams {
+		log.Printf("Testing %s...\n", upstream)
+
+		// Send test-request and check server accessibility
+		_, _, err := c.Exchange(m, upstream)
+		if err == nil {
+			log.Printf("Found new working upstream: %s...\n", upstream)
+			return upstream
+		}
+	}
+
+	return ""
+}
+
 func watchUpstreams(handler *dnsHandler, upstreams []string) {
 	ticker := time.NewTicker(10 * time.Second)
 
@@ -86,6 +126,11 @@ func watchUpstreams(handler *dnsHandler, upstreams []string) {
 			if err == nil && upstream != handler.Upstream {
 				log.Printf("Switching upstream from %s to %s...\n", handler.Upstream, upstream)
 				handler.Upstream = upstream
+				break
+			}
+			if err == nil && upstream == handler.Upstream {
+				log.Printf("Current upstream works right")
+				break
 			}
 		}
 	}
