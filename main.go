@@ -110,6 +110,8 @@ func getWorkingUpstream(upstreams []string) string {
 	return ""
 }
 
+// watchUpstreams runs as background goroutine to monitor and switch upstreams.
+// It makes switch to first available server.
 func watchUpstreams(handler *dnsHandler, upstreams []string) {
 	ticker := time.NewTicker(10 * time.Second)
 
