@@ -36,6 +36,7 @@ func StartDNSServer(cfg *Config) {
 type dnsHandler struct {
 	upstreams []string
 	Upstream  string
+	maxWidth  int // For better logging
 }
 
 func NewDNSHandler(upstreams []string) *dnsHandler {
@@ -67,7 +68,10 @@ func (h *dnsHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	if len(msg.Answer) > 0 {
-		log.Printf("[RESPONSE] %s%s[SERVER] %s\n", msg.Answer[0].Header().Name, strings.Repeat(" ", 50-len(msg.Answer[0].Header().Name)), h.Upstream)
+		if len(msg.Answer[0].Header().Name) > h.maxWidth {
+			h.maxWidth = len(msg.Answer[0].Header().Name) + 10
+		}
+		log.Printf("[RESPONSE] %s%s[SERVER] %s\n", msg.Answer[0].Header().Name, strings.Repeat(" ", h.maxWidth-len(msg.Answer[0].Header().Name)), h.Upstream)
 	}
 
 	w.WriteMsg(msg)
