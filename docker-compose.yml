@@ -1,0 +1,9 @@
+services:
+  dns-server:
+    container_name: dns-switcher-server
+    build: .
+    ports:
+      - "53:53"
+    volumes:
+      - ./config.json:/app/config.json
+    restart: unless-stopped
