@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/miekg/dns"
@@ -66,7 +67,7 @@ func (h *dnsHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	if len(msg.Answer) > 0 {
-		log.Printf("[RESPONSE] %s  [SERVER] %s\n", msg.Answer[0].Header().Name, h.Upstream)
+		log.Printf("[RESPONSE] %s%s[SERVER] %s\n", msg.Answer[0].Header().Name, strings.Repeat(" ", 50-len(msg.Answer[0].Header().Name)), h.Upstream)
 	}
 
 	w.WriteMsg(msg)
