@@ -50,25 +50,29 @@ func (h *dnsHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	msg.Authoritative = true
 
 	for _, question := range r.Question {
-		answers := resolve(h.Upstream, question.Name, question.Qtype)
-		// Try to get another server to use as main if current didnt respond
-		if answers == nil {
+		answers, err := resolve(h.Upstream, question.Name, question.Qtype)
+		if err != nil {
+			fmt.Println("Got err while resolving. Trying to get new upstream...")
 			newUpstream := getWorkingUpstream(h.upstreams)
 			if newUpstream == "" {
-				log.Println("Not found working upstream server")
+				log.Println("Not found working upstream")
 				break
 			}
 			h.Upstream = newUpstream
-			answers = resolve(h.Upstream, question.Name, question.Qtype)
+			answers, _ = resolve(h.Upstream, question.Name, question.Qtype)
 		}
 
 		msg.Answer = append(msg.Answer, answers...)
 	}
 
+	if len(msg.Answer) > 0 {
+		fmt.Printf("[RESPONSE] %s  [SERVER] %s\n", msg.Answer[0].Header().Name, h.Upstream)
+	}
+
 	w.WriteMsg(msg)
 }
 
-func resolve(server string, domain string, qtype uint16) []dns.RR {
+func resolve(server string, domain string, qtype uint16) ([]dns.RR, error) {
 	m := new(dns.Msg)
 	m.SetQuestion(dns.Fqdn(domain), qtype)
 	m.RecursionDesired = true
@@ -78,15 +82,15 @@ func resolve(server string, domain string, qtype uint16) []dns.RR {
 	response, _, err := c.Exchange(m, server)
 	if err != nil {
 		log.Printf("[ERROR]: %v\n", err)
-		return nil
+		return nil, err
 	}
 
 	if response == nil {
 		log.Printf("[NO RESPONSE] from server\n")
-		return nil
+		return nil, err
 	}
 
-	return response.Answer
+	return response.Answer, nil
 }
 
 func getWorkingUpstream(upstreams []string) string {
@@ -113,7 +117,7 @@ func getWorkingUpstream(upstreams []string) string {
 // watchUpstreams runs as background goroutine to monitor and switch upstreams.
 // It makes switch to first available server.
 func watchUpstreams(handler *dnsHandler, upstreams []string) {
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(1 * time.Minute)
 
 	c := &dns.Client{Timeout: 5 * time.Second}
 
