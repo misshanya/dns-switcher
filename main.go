@@ -66,7 +66,7 @@ func (h *dnsHandler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	if len(msg.Answer) > 0 {
-		fmt.Printf("[RESPONSE] %s  [SERVER] %s\n", msg.Answer[0].Header().Name, h.Upstream)
+		log.Printf("[RESPONSE] %s  [SERVER] %s\n", msg.Answer[0].Header().Name, h.Upstream)
 	}
 
 	w.WriteMsg(msg)
