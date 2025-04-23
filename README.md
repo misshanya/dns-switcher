@@ -1,28 +1,31 @@
-# For what?
+# DNS Switcher
+
+## Motivation
 I have AdGuard Home on my PC. When I turn pc off, I need to switch DNS server on router (for me I need to turn off 'strict order' in OpenWRT settings).
 
 I dont wanna go to settings every night and every morning.
 
-# What is that?
+## What is it?
 So I built simple DNS server which has my AdGuard Home as first upstream and Cloudflare as second upstream server. And when my PC is down it uses Cloudflare. When my PC is up it uses AdGuard Home on it. Automatically. That's what I needed.
 
-# How to use
-
+## How to use
 
 > [!NOTE]
-> You have to create config.json to run server (see [Config](#config))
+> You must create config.json to run the server (see [Config](#config))
 
-## Standalone binary
+### Standalone binary
 - Download binary for your platform from releases tab
-- Rename to dns-switcher (if desired)
+- Rename to dns-switcher (optional)
 - Run: `./dns-switcher`
 
-## Docker
+### Docker
 
-### CLI
-`docker run -p 53:53 -v ./config.json:/app/config.json -d ghcr.io/misshanya/dns-switcher`
+#### CLI
+```bash
+docker run -p 53:53 -v ./config.json:/app/config.json -d ghcr.io/misshanya/dns-switcher`
+```
 
-### Docker Compose
+#### Docker Compose
 ```yaml
 services:
   dns-switcher:
@@ -35,10 +38,10 @@ services:
     restart: unless-stopped
 ```
 
-# Config
-You should configure it via `config.json`
+## Config
+Configure it via `config.json`
 
-You can configure listen address and upstream servers. Example config:
+You can set the listen address and upstream servers. Example config:
 ```json
 {
     "address": ":53",
@@ -48,3 +51,6 @@ You can configure listen address and upstream servers. Example config:
     ]
 }
 ```
+
+# License
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
