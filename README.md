@@ -22,7 +22,7 @@ So I built simple DNS server which has my AdGuard Home as first upstream and Clo
 
 #### CLI
 ```bash
-docker run -p 53:53 -v ./config.json:/app/config.json -d ghcr.io/misshanya/dns-switcher`
+docker run -p 53:53 -v ./config.json:/app/config.json -d ghcr.io/misshanya/dns-switcher
 ```
 
 #### Docker Compose
@@ -36,6 +36,20 @@ services:
     volumes:
       - ./config.json:/app/config.json
     restart: unless-stopped
+```
+
+### Build
+Requirements:
+- Go 1.24+
+
+```bash
+go build -o dns-switcher .
+```
+
+And run as usual binary
+
+```bash
+./dns-switcher
 ```
 
 ## Config
