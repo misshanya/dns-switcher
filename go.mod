@@ -1,4 +1,4 @@
-module dns-server
+module github.com/misshanya/dns-switcher
 
 go 1.24.2
 
