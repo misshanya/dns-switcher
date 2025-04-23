@@ -25,7 +25,7 @@ So I built simple DNS server which has my AdGuard Home as first upstream and Clo
 ### Docker Compose
 ```yaml
 services:
-  dns-server:
+  dns-switcher:
     container_name: dns-switcher-server
     image: ghcr.io/misshanya/dns-switcher
     ports:

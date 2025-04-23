@@ -1,7 +1,7 @@
 services:
-  dns-server:
+  dns-switcher:
     container_name: dns-switcher-server
-    build: .
+    image: ghcr.io/misshanya/dns-switcher
     ports:
       - "53:53"
     volumes:
