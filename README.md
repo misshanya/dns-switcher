@@ -38,11 +38,13 @@ services:
     restart: unless-stopped
 ```
 
-### Build
+### Build from source
 Requirements:
 - Go 1.24+
 
 ```bash
+git clone https://github.com/misshanya/dns-switcher
+cd dns-switcher
 go build -o dns-switcher .
 ```
 
